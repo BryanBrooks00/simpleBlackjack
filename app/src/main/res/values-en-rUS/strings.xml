@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Blackjack</string>
+    <string name="yourBet">Bet:</string>
+    <string name="yourInt">Your number:</string>
+    <string name="robotInt">"Second player number: "</string>
+    <string name="youWin">You win!</string>
+    <string name="youLose">You lose</string>
+    <string name="draw">Draw</string>
+    <string name="restart">Restart</string>
+    <string name="yourMoney">Balance:</string>
+    <string name="ad">Ad (+5000)</string>
+    <string name="tryLater">Try later</string>
+    <string name="exit">Press again to exit</string>
+    <string name="noMoney">Not enough money</string>
+</resources>

@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Простой Блэкджек</string>
+    <string name="yourMoney"> Баланс:  </string>
+    <string name="yourBet"> Ставка: </string>
+    <string name="yourInt"> Ваше число: </string>
+    <string name="robotInt"> Число второго игрока: </string>
+    <string name="youWin">" Вы победили!"</string>
+    <string name="youLose">" Вы проиграли"</string>
+    <string name="draw"> Ничья </string>
+    <string name="plus" translatable="false"> + </string>
+    <string name="minus" translatable="false"> x </string>
+    <string name="restart"> Заново </string>
+    <string name="ad"> Реклама (+5000) </string>
+    <string name="tryLater"> Попробуйте позже </string>
+    <string name="exit"> Нажмите ещё раз для выхода </string>
+    <string name="noMoney"> Недостаточно денег </string>
+</resources>
