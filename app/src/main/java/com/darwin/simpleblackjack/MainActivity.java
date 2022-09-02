@@ -148,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (money >= 15000){
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.bonus),
+                    Toast.LENGTH_SHORT).show();
             money_tv.setText((money + starterMoney) + "");
         }
 
@@ -337,7 +339,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "showAd error");
                     loadAd();
                 }
-                TextView money_tv = findViewById(R.id.money_tv);
                 if (mRewardedAd!= null) {
                     Activity activityContext = MainActivity.this;
                     mRewardedAd.show(activityContext, new OnUserEarnedRewardListener() {
@@ -356,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
                         loadAd();
                         Toast.makeText(getApplicationContext(), getResources().getString(R.string.tryLater),
                                 Toast.LENGTH_SHORT).show();
-                        money_tv.setText("1000");
+                        money_tv.setText(starterMoney);
                         startGame();
                     }
                 }
