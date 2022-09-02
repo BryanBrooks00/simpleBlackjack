@@ -6,8 +6,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.OnUserEarnedRewardListener;
 import com.google.android.gms.ads.admanager.AdManagerAdRequest;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
@@ -20,6 +23,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,44 +37,71 @@ public class MainActivity extends AppCompatActivity {
     static final String KEY = "KEY";
     private long backPressedTime;
 
-    int[] list = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    Button btn_ad;
+    Button plus_btn;
+    Button minus_btn;
+    Button restart_btn;
+    TextView money_tv;
+    TextView score_tv;
+    TextView robotScore_tv;
+    TextView result_tv;
+    String youWin;
+    String youLose;
+    String draw;
+    ImageView robot_card_image;
+    ImageView card_back_image;
+    ImageView player_card_image;
+
+    int[] list = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     int starterMoney = 5000;
     int bet = 1000;
     int listLength = list.length;
     int reward = 5000;
-    int click = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        loadAd();
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+                loadAd();
+            }
+        });
+
+        btn_ad = findViewById(R.id.btn_ad);
+        plus_btn = findViewById(R.id.plus_btn);
+        minus_btn = findViewById(R.id.minus_btn);
+        restart_btn = findViewById(R.id.restart_btn);
+        money_tv = findViewById(R.id.money_tv);
+        score_tv = findViewById(R.id.score_tv);
+        robotScore_tv = findViewById(R.id.robotScore_tv);
+        result_tv = findViewById(R.id.result_tv);
+        youWin = getString(R.string.youWin);
+        youLose = getString(R.string.youLose);
+        draw = getString(R.string.draw);
+        robot_card_image = findViewById(R.id.robot_card_image);
+        card_back_image = findViewById(R.id.card_back_image);
+        player_card_image = findViewById(R.id.player_card_image);
+
         setBet();
     }
 
-
     @SuppressLint("SetTextI18n")
     public void setBet() {
-        TextView money_tv = findViewById(R.id.money_tv);
         sp = getSharedPreferences(KEY, MODE_PRIVATE);
         if (sp.getString(KEY, null) != null  &&  !sp.getString(KEY, null).equals("")){
             loadPref();
         } else {
             money_tv.setText(starterMoney + "");
         }
-        startGame(bet);
+        startGame();
     }
 
-
     @SuppressLint("SetTextI18n")
-    public void startGame(int bet) {
+    public void startGame() {
         Log.i(TAG, "NEW GAME");
-
-        Button btn_ad = findViewById(R.id.btn_ad);
-        Button plus_btn = findViewById(R.id.plus_btn);
-        Button minus_btn = findViewById(R.id.minus_btn);
-        Button restart_btn = findViewById(R.id.restart_btn);
 
         plus_btn.setEnabled(true);
         minus_btn.setEnabled(true);
@@ -78,10 +109,9 @@ public class MainActivity extends AppCompatActivity {
         minus_btn.setVisibility(View.VISIBLE);
         restart_btn.setVisibility(View.INVISIBLE);
 
-        TextView money_tv = findViewById(R.id.money_tv);
-        TextView score_tv = findViewById(R.id.score_tv);
-        TextView robotScore_tv = findViewById(R.id.robotScore_tv);
-        TextView result_tv = findViewById(R.id.result_tv);
+        robot_card_image.setVisibility(View.INVISIBLE);
+        card_back_image.setVisibility(View.VISIBLE);
+        player_card_image.setVisibility(View.VISIBLE);
 
         robotScore_tv.setText("");
         score_tv.setText("");
@@ -97,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
         if (money <= 0) {
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.noMoney),
                     Toast.LENGTH_SHORT).show();
+            robot_card_image.setVisibility(View.INVISIBLE);
+            card_back_image.setVisibility(View.INVISIBLE);
+            player_card_image.setVisibility(View.INVISIBLE);
             money_tv.setTextColor(Color.RED);
             score_tv.setVisibility(View.INVISIBLE);
             plus_btn.setVisibility(View.INVISIBLE);
@@ -134,54 +167,42 @@ public class MainActivity extends AppCompatActivity {
 
                     if (newScore > 21) {
                         Log.i(TAG, "score >21");
-                        getRobotResult(newScore, 1, bet);
+                        getRobotResult(newScore, 1);
                     }
-
                 }
             }
         });
-
 
         minus_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 int currentScore = Integer.parseInt(score_tv.getText().toString());
-                getRobotResult(currentScore, 1, bet);
+                getRobotResult(currentScore, 1);
             }
         });
     }
 
-
-    public void getRobotResult(int score, int robotScore, int bet) {
+    public void getRobotResult(int score, int robotScore) {
         if (robotScore < 17) {
             Random random = new Random();
             int randomInt = random.nextInt(listLength);
             robotScore += randomInt;
-            getRobotResult(score, robotScore, bet);
+            getRobotResult(score, robotScore);
         } else {
             Log.i(TAG, robotScore + "");
-            getResult(score, robotScore, bet);
+            getResult(score, robotScore);
         }
     }
 
-
     @SuppressLint("SetTextI18n")
-    public void getResult(int score, int robotScore, int bet) {
+    public void getResult(int score, int robotScore) {
 
-        Button plus_btn = findViewById(R.id.plus_btn);
-        Button minus_btn = findViewById(R.id.minus_btn);
         plus_btn.setEnabled(false);
         minus_btn.setEnabled(false);
 
-        String robotInt = getString(R.string.robotInt);
-        String youWin = getString(R.string.youWin);
-        String youLose = getString(R.string.youLose);
-        String draw = getString(R.string.draw);
-
-        TextView money_tv = findViewById(R.id.money_tv);
-        TextView robotScore_tv = findViewById(R.id.robotScore_tv);
-
-        robotScore_tv.setText(robotInt + "" + robotScore);
+        robotScore_tv.setText("" + robotScore);
+        robot_card_image.setVisibility(View.VISIBLE);
+        card_back_image.setVisibility(View.INVISIBLE);
         int money = Integer.parseInt(money_tv.getText().toString());
         String result;
 
@@ -233,14 +254,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     public void setResult(String result) {
         Log.i(TAG, result + "");
 
-        String youWin = getString(R.string.youWin);
-        String youLose = getString(R.string.youLose);
-
-        TextView result_tv = findViewById(R.id.result_tv);
         result_tv.setText(result);
 
         if (result.equals(youWin)) {
@@ -250,17 +266,14 @@ public class MainActivity extends AppCompatActivity {
         } else {
             result_tv.setTextColor(Color.YELLOW);
         }
-
         savePref();
-        Button restart_btn = findViewById(R.id.restart_btn);
         restart_btn.setVisibility(View.VISIBLE);
         restart_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startGame(bet);
+                startGame();
             }
         });
-
     }
 
     @Override
@@ -268,68 +281,62 @@ public class MainActivity extends AppCompatActivity {
         super.onBackPressed();
         if (backPressedTime + 2000 > System.currentTimeMillis()){
             super.onBackPressed();
-            return;
         } else{
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.exit),
                 Toast.LENGTH_SHORT).show();
-
+            backPressedTime = System.currentTimeMillis();
         }
-        backPressedTime = System.currentTimeMillis();
     }
 
-    public void loadAd(){
-    // ad
-    AdManagerAdRequest adRequest = new AdManagerAdRequest.Builder().build();
+    public void loadAd() {
+        // ad
+        Log.i(TAG, "Ad is loading...");
+        AdManagerAdRequest adRequest = new AdManagerAdRequest.Builder().build();
+        RewardedAd.load(this, "ca-app-pub-2382402581294867/6664384301",
+                adRequest, new RewardedAdLoadCallback() {
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        // Handle the error.
+                        Log.d(TAG, loadAdError.getMessage());
+                        Log.i(TAG, "Failed to load ad.");
+                        mRewardedAd = null;
+                        loadAd();
+                    }
 
-        RewardedAd.load(this,"ca-app-pub-2382402581294867/6664384301",
-    adRequest,new RewardedAdLoadCallback() {
-        @Override
-        public void onAdFailedToLoad (@NonNull LoadAdError loadAdError){
-            // Handle the error.
-            Log.d(TAG, loadAdError.getMessage());
-            Log.i(TAG, "Failed to load ad.");
-            mRewardedAd = null;
-        }
-
-        @Override
-        public void onAdLoaded (@NonNull RewardedAd rewardedAd){
-            mRewardedAd = rewardedAd;
-            Log.d(TAG, "Ad was loaded.");
-        }
-    });
-    //
-}
+                    @Override
+                    public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                        mRewardedAd = rewardedAd;
+                        Log.d(TAG, "Ad was loaded.");
+                    }
+                });
+        //
+    }
 
     @SuppressLint("SetTextI18n")
             public void showAd(){
-
                 try {
                     mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                         @Override
                         public void onAdShowedFullScreenContent() {
-                            // Called when ad is shown.
                             Log.d(TAG, "Ad was shown.");
                         }
 
                         @Override
                         public void onAdFailedToShowFullScreenContent(AdError adError) {
-                            // Called when ad fails to show.
                                 Log.d(TAG, "Ad failed to show.");
                         }
 
                         @Override
                         public void onAdDismissedFullScreenContent() {
-                            // Called when ad is dismissed.
-                            // Set the ad reference to null so you don't show the ad a second time.
                             Log.d(TAG, "Ad was dismissed.");
                             mRewardedAd = null;
                         }
-
                     });
+                    loadAd();
                 } catch (Exception e){
                     Log.i(TAG, "showAd error");
+                    loadAd();
                 }
-
                 TextView money_tv = findViewById(R.id.money_tv);
                 if (mRewardedAd!= null) {
                     Activity activityContext = MainActivity.this;
@@ -337,20 +344,20 @@ public class MainActivity extends AppCompatActivity {
                         @SuppressLint("SetTextI18n")
                         @Override
                         public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
-                            // Handle the reward.
                             Log.d(TAG, "The user earned the reward.");
                             int rewardAmount = rewardItem.getAmount();
                             String rewardType = rewardItem.getType();
                             money_tv.setText(reward + "");
-                            startGame(bet);
+                            startGame();
                         }
                     });
                 } else {
                         Log.d(TAG, "The rewarded ad wasn't ready yet.");
+                        loadAd();
                         Toast.makeText(getApplicationContext(), getResources().getString(R.string.tryLater),
                                 Toast.LENGTH_SHORT).show();
                         money_tv.setText("1000");
-                        startGame(bet);
+                        startGame();
                     }
                 }
 
@@ -379,15 +386,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-   /*@Override
-    public void onResume() {
-        loadPref();
-        Log.i(TAG, "onResume");
-        super.onResume();
-    }
-
-    */
-
     @Override
     public void onStop() {
         savePref();
@@ -402,4 +400,3 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 }
-            
