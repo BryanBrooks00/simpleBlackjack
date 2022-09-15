@@ -2,6 +2,7 @@ package com.darwin.simpleblackjack;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.impl.constraints.NetworkState;
 
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.FullScreenContentCallback;
@@ -19,6 +20,9 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -353,13 +357,39 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else {
+                    int bonus = 0;
+                    if (isNetworkConnected()) {
                         Log.d(TAG, "The rewarded ad wasn't ready yet.");
-                        loadAd();
                         Toast.makeText(getApplicationContext(), getResources().getString(R.string.tryLater),
                                 Toast.LENGTH_SHORT).show();
-                        money_tv.setText(starterMoney);
-                        startGame();
+                        bonus = starterMoney;
+                    } else {
+                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.internet),
+                                Toast.LENGTH_SHORT).show();
+                        bonus = 1000;
                     }
+                    money_tv.setText(bonus+"");
+                    startGame();
+                    loadAd();
+                    }
+                }
+
+                public boolean isNetworkConnected() {
+                    boolean isConnected = false;
+                    ConnectivityManager manager = (ConnectivityManager) getApplicationContext()
+                            .getSystemService(CONNECTIVITY_SERVICE);
+                    NetworkInfo activeNetwork = manager.getActiveNetworkInfo();
+                    if (null != activeNetwork) {
+                        if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                           isConnected = true;
+                        }
+                        if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                            isConnected = true;
+                        }
+                    } else {
+                        isConnected = false;
+                    }
+                    return  isConnected;
                 }
 
                 public void savePref(){
